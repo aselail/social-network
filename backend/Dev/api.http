@@ -1,0 +1,17 @@
+### LOGIN api
+POST http://localhost:8080/api
+
+{
+    "action": "login",
+    "username": "test",
+    "password": "123"
+}
+
+### sign up api
+POST http://localhost:8080/api
+
+{
+    "action": "signup",
+    "username": "test",
+    "password": "123"
+}
