@@ -18,6 +18,13 @@ func Router(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auth := r.Header.Get("Authorization")
+
+	if auth == "" {
+		http.Error(w, "Missing Authorization in Header", http.StatusUnauthorized)
+		return
+	}
+
 	bodyBytes, _ := io.ReadAll(r.Body) // Read the body to handle errors
 	_ = r.Body.Close()
 

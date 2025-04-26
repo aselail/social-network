@@ -71,13 +71,12 @@ func loadKeys() error {
 	return nil
 }
 
-func Sign(data string) string {
-	dataBytes := []byte(data)
+func sign(dataBytes []byte) string {
 	sig := ed25519.Sign(privateKey, dataBytes)
 	return hex.EncodeToString(sig)
 }
 
-func Verify(data string, signature string) bool {
+func verify(data string, signature string) bool {
 
 	dataBytes := []byte(data)
 	signatureBytes, err := hex.DecodeString(signature)

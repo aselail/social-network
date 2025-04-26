@@ -34,9 +34,12 @@ func init() {
 			log.Fatalf("Failed to create static directory: %v", err)
 		}
 	}
+
+	genDevToken()
 }
 
 func main() {
+
 	// File server
 	fs := http.FileServer(http.Dir(staticDir))
 
@@ -46,4 +49,14 @@ func main() {
 
 	fmt.Printf("Server starting on port %s...\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
+}
+
+func genDevToken() {
+	c := api.Claims{
+		Username: "admin",
+		UserID:   1,
+	}
+
+	sig, _ := c.GetBearer()
+	log.Printf("Authorization: %s\n", *sig)
 }
