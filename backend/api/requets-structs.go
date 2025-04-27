@@ -9,6 +9,3 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"` // Store hashed passwords!
 }
-
-// In-memory storage (for simplicity - DO NOT USE IN PRODUCTION)
-var users []User

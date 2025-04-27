@@ -1,8 +1,8 @@
 package api
 
 import (
+	"backend/db"
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"strings"
@@ -39,37 +39,35 @@ func (ar *apiRequest) signup() {
 	}
 
 	// Check if the username already exists
-	for _, user := range users {
-		if user.Username == newUser.Username {
-			log.Printf("Username already exists: %s\n", user.Username)
-
-			ar.responseCode = http.StatusConflict // HTTP 409 Conflict
-			ar.response = "Username already exists"
-			return
-		}
-	}
-
-	// Hash the password using bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("Error hashing password: %v\n", err)
-
-		ar.responseCode = http.StatusInternalServerError
-		ar.response = "Internal server error"
+	if _, err := db.Connection.FetchUserByUsername(newUser.Username); err == nil {
+		ar.responseCode = http.StatusConflict // HTTP 409 Conflict
+		ar.response = "Username already exists"
 		return
 	}
+	/*	if _, err := db.Connection.FetchUserByEmail(newUser.Email); err == nil {
+		ar.responseCode = http.StatusConflict // HTTP 409 Conflict
+		ar.response = "Username already exists"
+		return
+	}*/
 
-	// Create a new user with the hashed password
-	newUser.Password = string(hashedPassword)
+	// Create the user
+	user := db.User{
+		Username: newUser.Username,
+		Password: newUser.Password,
+	}
 
-	//  Store the new user (in-memory - for demonstration only)
-	users = append(users, newUser)
+	userId, err := db.Connection.CreateUser(user)
+	if err != nil {
+		ar.responseCode = http.StatusInternalServerError
+		ar.response = "Internal Server Error"
+		return
+	}
 
 	log.Printf("New user registered: %s\n", newUser.Username)
 
 	c := Claims{
-		Username: newUser.Username, // Use the new user's username
-		UserID:   1,                // Replace with your actual user ID generation logic.
+		Username: newUser.Username,
+		UserId:   userId,
 	}
 
 	token, err := c.GetBearer()
@@ -83,7 +81,7 @@ func (ar *apiRequest) signup() {
 
 	response := loginResponse{
 		Username: newUser.Username,
-		UserId:   1, // TODO replace with your actual user ID logic
+		UserId:   userId,
 		Token:    *token,
 	}
 
@@ -122,23 +120,17 @@ func (ar *apiRequest) login() {
 	}
 
 	// Find the user
-	var foundUser *User
-	for i := range users {
-		if users[i].Username == loginUser.Username {
-			foundUser = &users[i]
-			break
-		}
-	}
+	user, err := db.Connection.FetchUserByUsername(loginUser.Username)
 
-	if foundUser == nil {
-		log.Printf("Invalid credentials - user not found: %s\n", loginUser.Username)
+	if err != nil {
+		log.Printf("Invalid credentials - user not found: %s\n", err)
 		ar.responseCode = http.StatusUnauthorized // 401 Unauthorized
 		ar.response = "Invalid credentials"
 		return
 	}
 
 	// Verify the password
-	err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(loginUser.Password))
+	err = db.VerifyPassword(user.Password, loginUser.Password)
 	if err != nil {
 		log.Printf("Password verification failed for %s: %v\n", loginUser.Username, err)
 		ar.responseCode = http.StatusUnauthorized // 401 Unauthorized
@@ -150,8 +142,8 @@ func (ar *apiRequest) login() {
 	// Successful login generating user claims and sending them
 
 	c := Claims{
-		Username: foundUser.Username,
-		UserID:   1, // TODO replace with your actual user ID logic
+		Username: user.Username,
+		UserId:   user.User,
 	}
 
 	token, err := c.GetBearer()
@@ -164,8 +156,8 @@ func (ar *apiRequest) login() {
 	}
 
 	response := loginResponse{
-		Username: foundUser.Username,
-		UserId:   1, // TODO replace with your actual user ID logic
+		Username: user.Username,
+		UserId:   user.User,
 		Token:    *token,
 	}
 

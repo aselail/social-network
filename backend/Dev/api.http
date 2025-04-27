@@ -4,7 +4,7 @@ Authorization: eyJjbGFpbXMiOiJ7XCJ1c2VyX2lkXCI6MSxcInVzZXJuYW1lXCI6XCJhZG1pblwif
 
 {
     "action": "login",
-    "username": "test",
+    "username": "ahmed",
     "password": "123"
 }
 
@@ -14,6 +14,13 @@ Authorization: eyJjbGFpbXMiOiJ7XCJ1c2VyX2lkXCI6MSxcInVzZXJuYW1lXCI6XCJhZG1pblwif
 
 {
     "action": "signup",
-    "username": "test",
+    "username": "ahmed",
     "password": "123"
 }
+
+### Web Socket
+GET http://localhost:8080/api
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
