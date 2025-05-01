@@ -16,45 +16,44 @@ const (
 var publicKey ed25519.PublicKey
 var privateKey ed25519.PrivateKey
 
-func GenOrLoadKey() {
-	err := loadKeys()
-	if err != nil {
-		log.Println("Generating new key pair...")
-		generateKeys()
-		if err := saveKeys(); err != nil {
-			log.Fatalf("Error saving keys: %v", err)
-		}
-		log.Println("Key pair generated and saved.")
-	} else {
+func GenOrLoadKey(dataDir string) {
+	path := dataDir + "/"
+
+	if err := loadKeys(path); err == nil {
 		log.Println("Key pair loaded from disk.")
+		return
 	}
+
+	log.Println("Generating new key pair...")
+	if err := generateKeys(path); err != nil {
+		log.Fatalf("Error generating keys: %v", err)
+	}
+	log.Println("Key pair generated and saved.")
 }
 
-func generateKeys() {
+func generateKeys(path string) error {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		log.Fatalf("Error generating key: %v", err)
 	}
 	privateKey = priv
 	publicKey = pub
-}
 
-func saveKeys() error {
-	if err := os.WriteFile(pubKeyFile, publicKey, 0644); err != nil {
+	if err := os.WriteFile(path+pubKeyFile, publicKey, 0644); err != nil {
 		return fmt.Errorf("error writing public key: %w", err)
 	}
-	if err := os.WriteFile(privKeyFile, privateKey, 0600); err != nil {
+	if err := os.WriteFile(path+privKeyFile, privateKey, 0600); err != nil {
 		return fmt.Errorf("error writing private key: %w", err)
 	}
 	return nil
 }
 
-func loadKeys() error {
-	privBytes, err := os.ReadFile(privKeyFile)
+func loadKeys(path string) error {
+	privBytes, err := os.ReadFile(path + privKeyFile)
 	if err != nil {
 		return err
 	}
-	pubBytes, err := os.ReadFile(pubKeyFile)
+	pubBytes, err := os.ReadFile(path + pubKeyFile)
 	if err != nil {
 		return err
 	}

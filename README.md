@@ -60,17 +60,17 @@ The application provides the following core services:
 
 **Create Migration Files:**
 
-Create files in a dedicated directory (e.g., `database/migrations`) to define your database schema changes.
+Create files in a dedicated directory (e.g., `database-migrations`) to define your database schema changes.
 Each migration file typically consists of two parts: an `up` migration (to apply the changes) and a `down` migration (to revert them).
 
 1. **Create a new migration:** create `up` and `down` files (create user table)
-   - `database/migrations/000001_create_user_table.up.sql`
-   - `database/migrations/000001_create_user_table.down.sql`.
+   - `database-migrations/000001_create_user_table.up.sql`
+   - `database-migrations/000001_create_user_table.down.sql`.
 
 2. **Example `up.sql` (create user table):**
     ```sqlite
     CREATE TABLE IF NOT EXISTS user (
-    user       INTEGER PRIMARY KEY AUTOINCREMENT,
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
     archive    BOOLEAN DEFAULT FALSE NOT NULL,
     email      TEXT                  NOT NULL UNIQUE,
     password   TEXT                  NOT NULL,

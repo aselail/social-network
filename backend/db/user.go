@@ -11,12 +11,13 @@ import (
 
 // User struct represents a user in the database.
 type User struct {
-	User     int          `json:"user,omitempty"` // User ID
-	Username string       `json:"username,omitempty"`
-	Archive  bool         `json:"archive,omitempty"`
-	Email    string       `json:"email,omitempty"`
-	Password string       `json:"-"` // hashed password, hide in JSON output
-	Metadata UserMetadata `json:"metadata,omitempty"`
+	Id        int          `json:"id,omitempty"`
+	Archive   bool         `json:"archive,omitempty"`
+	Email     string       `json:"email,omitempty"`
+	Password  string       `json:"-"` // hashed password, hide in JSON output
+	FirstName string       `json:"firstName,omitempty"`
+	LastName  string       `json:"lastName,omitempty"`
+	Metadata  UserMetadata `json:"metadata,omitempty"`
 }
 
 type UserMetadata struct {
@@ -54,18 +55,18 @@ func (db *Database) CreateUser(user User) (int, error) {
 	}
 
 	stmt, err := db.db.Prepare(`
-		INSERT INTO user (username, archive, email, password, metadata) 
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO user (archive, email, password, metadata) 
+		VALUES (?, ?, ?, ?)
 	`)
 	if err != nil {
 		return 0, fmt.Errorf("failed to prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(user.Username, user.Archive, user.Email, hashedPassword, string(metadataJSON))
+	result, err := stmt.Exec(user.Archive, user.Email, hashedPassword, string(metadataJSON))
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return 0, fmt.Errorf("username or email already exists: %w", err)
+			return 0, fmt.Errorf("email already exists: %w", err)
 		}
 		return 0, fmt.Errorf("failed to execute statement: %w", err)
 	}
@@ -80,18 +81,7 @@ func (db *Database) CreateUser(user User) (int, error) {
 
 // FetchUser retrieves a user record from the database by user ID.
 func (db *Database) FetchUser(userID int) (*User, error) {
-	row := db.db.QueryRow(`SELECT user, username, archive, email, password, metadata FROM user WHERE user = ?`, userID)
-
-	if user, err := scanUserRecord(row); err != nil {
-		return nil, fmt.Errorf("failed to scan row: %w", err)
-	} else {
-		return user, nil
-	}
-}
-
-// FetchUserByUsername retrieves a user record from the database by username.
-func (db *Database) FetchUserByUsername(username string) (*User, error) {
-	row := db.db.QueryRow(`SELECT user, username, archive, email, password, metadata FROM user WHERE username = ?`, username)
+	row := db.db.QueryRow(`SELECT id, archive, email, password, metadata FROM user WHERE id = ?`, userID)
 
 	if user, err := scanUserRecord(row); err != nil {
 		return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -102,7 +92,7 @@ func (db *Database) FetchUserByUsername(username string) (*User, error) {
 
 // FetchUserByEmail retrieves a user record from the database by email.
 func (db *Database) FetchUserByEmail(email string) (*User, error) {
-	row := db.db.QueryRow(`SELECT user, username, archive, email, password, metadata FROM user WHERE email = ?`, email)
+	row := db.db.QueryRow(`SELECT id, archive, email, password, metadata FROM user WHERE email = ?`, email)
 
 	if user, err := scanUserRecord(row); err != nil {
 		return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -115,7 +105,7 @@ func scanUserRecord(row *sql.Row) (*User, error) {
 	var user User
 	var metadata []byte
 
-	err := row.Scan(&user.User, &user.Username, &user.Archive, &user.Email, &user.Password, &metadata)
+	err := row.Scan(&user.Id, &user.Archive, &user.Email, &user.Password, &metadata)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -131,7 +121,7 @@ func scanUserRecord(row *sql.Row) (*User, error) {
 
 // ArchiveUser archives a user by setting the 'archive' flag to true (soft delete)
 func (db *Database) ArchiveUser(userID int) error {
-	stmt, err := db.db.Prepare(`UPDATE user SET archive = TRUE WHERE user = ?`)
+	stmt, err := db.db.Prepare(`UPDATE user SET archive = TRUE WHERE id = ?`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
@@ -159,18 +149,18 @@ func (db *Database) UpdateUser(user User) error {
 
 	stmt, err := db.db.Prepare(`
 		UPDATE user
-		SET username = ?, archive = ?, email = ?, password = ?, metadata = ?
-		WHERE user = ?
+		SET archive = ?, email = ?, password = ?, metadata = ?
+		WHERE id = ?
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(user.Username, user.Archive, user.Email, hashedPassword, string(metadataJSON), user.User)
+	_, err = stmt.Exec(user.Archive, user.Email, hashedPassword, string(metadataJSON), user.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return fmt.Errorf("username or email already exists: %w", err)
+			return fmt.Errorf("email already exists: %w", err)
 		}
 		return fmt.Errorf("failed to execute statement: %w", err)
 	}

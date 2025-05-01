@@ -4,7 +4,6 @@ import (
 	"backend/api"
 	"backend/db"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
 	"os"
@@ -13,16 +12,48 @@ import (
 // Configurable constants, can be loaded from environment variables
 var (
 	port      = ":8080"
+	dataDir   = "data"
 	staticDir = "static"
 )
 
 func init() {
-	api.GenOrLoadKey()
 
+	loadEnvironment()
+	api.GenOrLoadKey(dataDir)
+	genDevToken()
+
+	if err := db.Connection.OpenOrCreate(dataDir+"/social-backend.db", "database-migrations"); err != nil {
+		log.Fatalf("Failed to open database connection: %v", err)
+	}
+}
+
+func main() {
+
+	defer db.Connection.Close()
+	testDB()
+
+	// File server
+	fs := http.FileServer(http.Dir(staticDir))
+
+	// Handlers
+	http.Handle("/", http.StripPrefix("/", fs)) // Serves files from the static directory
+	http.HandleFunc("/api", api.Router)
+
+	fmt.Printf("Server starting on port %s...\n", port)
+	log.Fatal(http.ListenAndServe(port, nil))
+}
+
+func loadEnvironment() {
 	// Get environment variables, using default values if not set
+
 	envPort := os.Getenv("PORT")
 	if envPort != "" {
 		port = ":" + envPort
+	}
+
+	envDataDir := os.Getenv("DATA_DIR")
+	if envDataDir != "" {
+		dataDir = envDataDir
 	}
 
 	envStaticDir := os.Getenv("STATIC_DIR")
@@ -37,32 +68,18 @@ func init() {
 		}
 	}
 
-	genDevToken()
-
-	if err := db.Connection.Open("db.sqlite3"); err != nil {
-		log.Fatalf("Failed to open database connection: %v", err)
+	// creating data dir for persistent server files
+	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
+		if err := os.Mkdir(dataDir, 0755); err != nil {
+			log.Fatalf("Failed to create data directory: %v", err)
+		}
 	}
-}
-
-func main() {
-
-	testDB()
-
-	// File server
-	fs := http.FileServer(http.Dir(staticDir))
-
-	// Handlers
-	http.Handle("/", http.StripPrefix("/", fs)) // Serves files from the static directory
-	http.HandleFunc("/api", api.Router)
-
-	fmt.Printf("Server starting on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func genDevToken() {
 	c := api.Claims{
-		Username: "admin",
-		UserId:   1,
+		Email: "admin@test.fake",
+		Id:    1,
 	}
 
 	sig, _ := c.GetBearer()
@@ -71,7 +88,6 @@ func genDevToken() {
 
 func testDB() {
 	newUser := db.User{
-		Username: "testuser",
 		Archive:  false,
 		Email:    "test@example.com",
 		Password: "password123",
@@ -91,60 +107,47 @@ func testDB() {
 	}
 
 	// Fetch the created user
-	if userID > 0 {
-		fetchedUser, err := connection.FetchUser(userID)
-		if err != nil {
-			log.Printf("Failed to fetch user: %v", err)
-		} else {
-			fmt.Printf("Fetched User: %+v\n", fetchedUser)
-		}
-
-		// Example: Update the user
-		if fetchedUser != nil {
-			fetchedUser.Metadata.Gender = 1
-			err = connection.UpdateUser(*fetchedUser)
-			if err != nil {
-				log.Printf("Failed to update user: %v", err)
-			} else {
-				fmt.Println("User updated successfully.")
-			}
-
-			// Fetch the updated user
-			updatedUser, err := connection.FetchUser(userID)
-			if err != nil {
-				log.Printf("Failed to fetch updated user: %v", err)
-			} else {
-				fmt.Printf("Updated User: %+v\n", updatedUser)
-			}
-		}
-
-		// Archive the user
-		if fetchedUser != nil {
-			err = connection.ArchiveUser(userID)
-			if err != nil {
-				log.Printf("Failed to archive user: %v", err)
-			} else {
-				fmt.Println("User archived successfully.")
-			}
-
-			// Fetch the updated user (check archive status)
-			archivedUser, err := connection.FetchUser(userID)
-			if err != nil {
-				log.Printf("Failed to fetch archived user: %v", err)
-			} else {
-				fmt.Printf("Archived User: %+v\n", archivedUser)
-			}
-		}
-	}
-
-	// Example: Fetch user by username
-	userByName, err := connection.FetchUserByUsername("testuser")
+	fetchedUser, err := connection.FetchUser(1)
 	if err != nil {
-		log.Printf("Failed to fetch user by username: %v", err)
-	} else {
-		fmt.Printf("User by username: %+v\n", userByName)
+		log.Printf("Failed to fetch user: %v", err)
+		return
 	}
 
-	userJSON, _ := userByName.Marshal()
+	fmt.Printf("Fetched User: %+v\n", fetchedUser)
+
+	// Example: Update the user
+	fetchedUser.Metadata.Gender = 1
+	err = connection.UpdateUser(*fetchedUser)
+	if err != nil {
+		log.Printf("Failed to update user: %v", err)
+	} else {
+		fmt.Println("User updated successfully.")
+	}
+
+	// Fetch the updated user
+	updatedUser, err := connection.FetchUser(userID)
+	if err != nil {
+		log.Printf("Failed to fetch updated user: %v", err)
+	} else {
+		fmt.Printf("Updated User: %+v\n", updatedUser)
+	}
+
+	// Archive the user
+	err = connection.ArchiveUser(userID)
+	if err != nil {
+		log.Printf("Failed to archive user: %v", err)
+	} else {
+		fmt.Println("User archived successfully.")
+	}
+
+	// Fetch the updated user (check archive status)
+	archivedUser, err := connection.FetchUser(userID)
+	if err != nil {
+		log.Printf("Failed to fetch archived user: %v", err)
+	} else {
+		fmt.Printf("Archived User: %+v\n", archivedUser)
+	}
+
+	userJSON, _ := fetchedUser.Marshal()
 	fmt.Println(string(userJSON))
 }

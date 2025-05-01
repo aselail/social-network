@@ -7,8 +7,8 @@ import (
 )
 
 type Claims struct {
-	UserId   int    `json:"user_id,omitempty"`
-	Username string `json:"username,omitempty"`
+	Id    int    `json:"id,omitempty"`
+	Email string `json:"email,omitempty"`
 }
 
 type signedClaims struct {
