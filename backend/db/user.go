@@ -176,3 +176,12 @@ func (db *Database) UpdateUser(user User) error {
 	}
 	return nil
 }
+
+func (u *User) Marshal() (string, error) {
+	userJSON, err := json.Marshal(u)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal user to JSON: %w", err)
+	}
+
+	return string(userJSON), nil
+}

@@ -144,4 +144,7 @@ func testDB() {
 	} else {
 		fmt.Printf("User by username: %+v\n", userByName)
 	}
+
+	userJSON, _ := userByName.Marshal()
+	fmt.Println(string(userJSON))
 }
