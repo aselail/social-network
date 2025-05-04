@@ -2,6 +2,7 @@
 // This is a client-side component for the login page
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {apiRequest, login} from "@/hooks/auth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -12,23 +13,7 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // credentials set to include cookies
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText);
-      }
-      // If successful, navigate to home or profile
-      router.push("/");
-    } catch (err: any) {
-      setError(err.message);
-    }
+      const response = await login(email, password);
   };
 
   return (

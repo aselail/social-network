@@ -55,15 +55,15 @@ func (db *Database) CreateUser(user User) (int, error) {
 	}
 
 	stmt, err := db.db.Prepare(`
-		INSERT INTO user (archive, email, password, metadata) 
-		VALUES (?, ?, ?, ?)
+		INSERT INTO user (archive, email, password, first_name, last_name, metadata) 
+		VALUES (?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return 0, fmt.Errorf("failed to prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(user.Archive, user.Email, hashedPassword, string(metadataJSON))
+	result, err := stmt.Exec(user.Archive, user.Email, hashedPassword, user.FirstName, user.LastName, string(metadataJSON))
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return 0, fmt.Errorf("email already exists: %w", err)
@@ -137,10 +137,10 @@ func (db *Database) ArchiveUser(userID int) error {
 // UpdateUser updates an existing user record.
 func (db *Database) UpdateUser(user User) error {
 	// Hash the password before storing it.
-	hashedPassword, err := HashPassword(user.Password)
+	/*hashedPassword, err := HashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
-	}
+	}*/
 
 	metadataJSON, err := json.Marshal(user.Metadata)
 	if err != nil {
@@ -157,7 +157,7 @@ func (db *Database) UpdateUser(user User) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(user.Archive, user.Email, hashedPassword, string(metadataJSON), user.Id)
+	_, err = stmt.Exec(user.Archive, user.Email, user.Password, string(metadataJSON), user.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return fmt.Errorf("email already exists: %w", err)

@@ -10,23 +10,19 @@ import (
 // Extract the "action" from the request body (JSON)
 func Router(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method == http.MethodOptions {
+		// Handle preflight request for CORS (if needed).
+		w.Header().Set("Allow", "POST, OPTIONS")                        // Include allowed methods
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS") // Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")              // Adjust as needed (e.g., your specific origin)
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")  // Add any other headers you need
+
+		w.WriteHeader(http.StatusOK)
+		return // Preflight request handled
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	auth := r.Header.Get("Authorization")
-
-	if auth == "" {
-		http.Error(w, "Missing Authorization Token", http.StatusUnauthorized)
-		return
-	}
-
-	claims, err := UnmarshalBearer(&auth)
-
-	if err != nil {
-		log.Printf("Error unmarshalling token: %v\n", err)
-		http.Error(w, "Bad Authorization Token", http.StatusUnauthorized)
 		return
 	}
 
@@ -46,6 +42,27 @@ func Router(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyString := string(bodyBytes)
+
+	auth := r.Header.Get("Authorization")
+
+	claims := &Claims{}
+	var err error
+
+	if auth == "" {
+		if action != "login" && action != "signup" {
+			http.Error(w, "Missing Authorization Token", http.StatusUnauthorized)
+			return
+		}
+	} else {
+
+		claims, err = UnmarshalBearer(&auth)
+
+		if err != nil {
+			log.Printf("Error unmarshalling token: %v\n", err)
+			http.Error(w, "Bad Authorization Token", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	request := apiRequest{
 		claims:       *claims,

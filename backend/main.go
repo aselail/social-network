@@ -88,9 +88,11 @@ func genDevToken() {
 
 func testDB() {
 	newUser := db.User{
-		Archive:  false,
-		Email:    "test@example.com",
-		Password: "password123",
+		Archive:   false,
+		Email:     "test@example.com",
+		Password:  "password123",
+		FirstName: "name",
+		LastName:  "name",
 		Metadata: db.UserMetadata{
 			Age:    12,
 			Gender: 0,
@@ -125,7 +127,7 @@ func testDB() {
 	}
 
 	// Fetch the updated user
-	updatedUser, err := connection.FetchUser(userID)
+	updatedUser, err := connection.FetchUser(1)
 	if err != nil {
 		log.Printf("Failed to fetch updated user: %v", err)
 	} else {
@@ -133,7 +135,7 @@ func testDB() {
 	}
 
 	// Archive the user
-	err = connection.ArchiveUser(userID)
+	err = connection.ArchiveUser(1)
 	if err != nil {
 		log.Printf("Failed to archive user: %v", err)
 	} else {
@@ -141,7 +143,7 @@ func testDB() {
 	}
 
 	// Fetch the updated user (check archive status)
-	archivedUser, err := connection.FetchUser(userID)
+	archivedUser, err := connection.FetchUser(1)
 	if err != nil {
 		log.Printf("Failed to fetch archived user: %v", err)
 	} else {
