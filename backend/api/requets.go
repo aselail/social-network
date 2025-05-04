@@ -30,7 +30,7 @@ func (ar *apiRequest) signup() {
 	}
 
 	// Input validation (basic - expand for production)
-	if strings.TrimSpace(newUser.Username) == "" || strings.TrimSpace(newUser.Password) == "" {
+	if strings.TrimSpace(newUser.Email) == "" || strings.TrimSpace(newUser.Password) == "" {
 		log.Println("Username and password are required")
 
 		ar.responseCode = http.StatusBadRequest
@@ -39,20 +39,15 @@ func (ar *apiRequest) signup() {
 	}
 
 	// Check if the username already exists
-	if _, err := db.Connection.FetchUserByUsername(newUser.Username); err == nil {
+	if _, err := db.Connection.FetchUserByEmail(newUser.Email); err == nil {
 		ar.responseCode = http.StatusConflict // HTTP 409 Conflict
 		ar.response = "Username already exists"
 		return
 	}
-	/*	if _, err := db.Connection.FetchUserByEmail(newUser.Email); err == nil {
-		ar.responseCode = http.StatusConflict // HTTP 409 Conflict
-		ar.response = "Username already exists"
-		return
-	}*/
 
 	// Create the user
 	user := db.User{
-		Username: newUser.Username,
+		Email:    newUser.Email,
 		Password: newUser.Password,
 	}
 
@@ -63,11 +58,11 @@ func (ar *apiRequest) signup() {
 		return
 	}
 
-	log.Printf("New user registered: %s\n", newUser.Username)
+	log.Printf("New user registered: %s\n", newUser.Email)
 
 	c := Claims{
-		Username: newUser.Username,
-		UserId:   userId,
+		Email: newUser.Email,
+		Id:    userId,
 	}
 
 	token, err := c.GetBearer()
@@ -80,9 +75,9 @@ func (ar *apiRequest) signup() {
 	}
 
 	response := loginResponse{
-		Username: newUser.Username,
-		UserId:   userId,
-		Token:    *token,
+		Email: newUser.Email,
+		Id:    userId,
+		Token: *token,
 	}
 
 	responseJSON, err := json.Marshal(response)
@@ -111,7 +106,7 @@ func (ar *apiRequest) login() {
 	}
 
 	// Basic input validation
-	if strings.TrimSpace(loginUser.Username) == "" || strings.TrimSpace(loginUser.Password) == "" {
+	if strings.TrimSpace(loginUser.Email) == "" || strings.TrimSpace(loginUser.Password) == "" {
 		log.Println("Username and password are required")
 
 		ar.responseCode = http.StatusBadRequest
@@ -120,7 +115,7 @@ func (ar *apiRequest) login() {
 	}
 
 	// Find the user
-	user, err := db.Connection.FetchUserByUsername(loginUser.Username)
+	user, err := db.Connection.FetchUserByEmail(loginUser.Email)
 
 	if err != nil {
 		log.Printf("Invalid credentials - user not found: %s\n", err)
@@ -132,18 +127,18 @@ func (ar *apiRequest) login() {
 	// Verify the password
 	err = db.VerifyPassword(user.Password, loginUser.Password)
 	if err != nil {
-		log.Printf("Password verification failed for %s: %v\n", loginUser.Username, err)
+		log.Printf("Password verification failed for %s: %v\n", loginUser.Email, err)
 		ar.responseCode = http.StatusUnauthorized // 401 Unauthorized
 		ar.response = "Invalid credentials"
 		return
 	}
 
-	log.Printf("User %s logged in\n", loginUser.Username)
+	log.Printf("User %s logged in\n", loginUser.Email)
 	// Successful login generating user claims and sending them
 
 	c := Claims{
-		Username: user.Username,
-		UserId:   user.User,
+		Email: user.Email,
+		Id:    user.Id,
 	}
 
 	token, err := c.GetBearer()
@@ -156,9 +151,9 @@ func (ar *apiRequest) login() {
 	}
 
 	response := loginResponse{
-		Username: user.Username,
-		UserId:   user.User,
-		Token:    *token,
+		Email: user.Email,
+		Id:    user.Id,
+		Token: *token,
 	}
 
 	responseJSON, err := json.Marshal(response)

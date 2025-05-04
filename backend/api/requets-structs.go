@@ -6,6 +6,6 @@ type API struct {
 
 // User represents a user in the system.
 type User struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"` // Store hashed passwords!
 }

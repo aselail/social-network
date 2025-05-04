@@ -1,7 +1,7 @@
 package api
 
 type loginResponse struct {
-	Username string `json:"username"`
-	UserId   int    `json:"userId"`
-	Token    string `json:"token"`
+	Email string `json:"email"`
+	Id    int    `json:"id"`
+	Token string `json:"token"`
 }
