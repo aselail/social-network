@@ -1,13 +1,16 @@
 package api
 
 import (
+	"backend/db"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-// Extract the "action" from the request body (JSON)
+// Extract "action" from the request body (JSON)
 func Router(w http.ResponseWriter, r *http.Request) {
 	// Handle preflight request for CORS
 	w.Header().Set("Allow", "POST, OPTIONS")
@@ -85,4 +88,44 @@ func Router(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(request.responseCode)
 	w.Write([]byte(request.response))
+}
+
+func File(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+
+	if idStr == "" {
+		http.Error(w, "Missing 'id' parameter", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid 'id' parameter: Must be an integer", http.StatusBadRequest)
+		return
+	}
+
+	file, err := db.Connection.GetFileByID(id)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", file.Name))
+	w.Header().Set("Content-Type", file.Mimetype)
+
+	_, err = w.Write(file.Data)
+	if err != nil {
+		fmt.Println("Error writing response:", err)
+	}
 }

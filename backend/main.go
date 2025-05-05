@@ -38,6 +38,7 @@ func main() {
 	// Handlers
 	http.Handle("/", http.StripPrefix("/", fs)) // Serves files from the static directory
 	http.HandleFunc("/api", api.Router)
+	http.HandleFunc("/file", api.File)
 
 	fmt.Printf("Server starting on port %s...\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
