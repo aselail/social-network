@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import { Switch } from "@headlessui/react";
 
+// Input Field
 export const AuthInput = ({
   label,
   id,
@@ -18,25 +20,24 @@ export const AuthInput = ({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   [key: string]: any;
-}) => {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        {...props}
-      />
-    </div>
-  );
-};
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-[#522c77]">
+      {label}
+    </label>
+    <input
+      id={id}
+      type={type}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="mt-1 block w-full rounded-md border border-[#e7dbf9] shadow-sm focus:border-[#8b4ecf] focus:ring-[#8b4ecf] sm:text-sm px-3 text-[#4c3c63]"
+      {...props}
+    />
+  </div>
+);
 
+// Select Field
 export const AuthSelect = ({
   label,
   id,
@@ -53,30 +54,29 @@ export const AuthSelect = ({
   options: { value: string; label: string }[];
   required?: boolean;
   [key: string]: any;
-}) => {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        {...props}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-[#522c77]">
+      {label}
+    </label>
+    <select
+      id={id}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="mt-1 block w-full rounded-md border border-[#e7dbf9] shadow-sm focus:border-[#8b4ecf] focus:ring-[#8b4ecf] sm:text-sm px-3 text-[#4c3c63]"
+      {...props}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
+// Textarea Field
 export const AuthTextarea = ({
   label,
   id,
@@ -93,25 +93,24 @@ export const AuthTextarea = ({
   rows?: number;
   required?: boolean;
   [key: string]: any;
-}) => {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <textarea
-        id={id}
-        value={value}
-        onChange={onChange}
-        rows={rows}
-        required={required}
-        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        {...props}
-      />
-    </div>
-  );
-};
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-[#522c77]">
+      {label}
+    </label>
+    <textarea
+      id={id}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      required={required}
+      className="mt-1 block w-full rounded-md border border-[#e7dbf9] shadow-sm focus:border-[#8b4ecf] focus:ring-[#8b4ecf] sm:text-sm"
+      {...props}
+    />
+  </div>
+);
 
+// Button
 export const AuthButton = ({
   children,
   type = "button",
@@ -124,21 +123,20 @@ export const AuthButton = ({
   onClick?: () => void;
   className?: string;
   [key: string]: any;
-}) => {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-        className || ""
-      }`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+}) => (
+  <button
+    type={type}
+    onClick={onClick}
+    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b4ecf] hover:bg-[#763cb4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b4ecf] ${
+      className || ""
+    }`}
+    {...props}
+  >
+    {children}
+  </button>
+);
 
+// Toggle
 export const AuthToggle = ({
   checked,
   onChange,
@@ -149,44 +147,41 @@ export const AuthToggle = ({
   onChange: (checked: boolean) => void;
   label: string;
   [key: string]: any;
-}) => {
-  return (
-    <div className="flex items-center">
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
+}) => (
+  <div className="flex items-center">
+    <Switch
+      checked={checked}
+      onChange={onChange}
+      className={`${
+        checked ? "bg-[#8b4ecf]" : "bg-[#e7dbf9]"
+      } relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#8b4ecf] focus:ring-offset-2`}
+      {...props}
+    >
+      <span
         className={`${
-          checked ? "bg-indigo-600" : "bg-gray-200"
-        } relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
-        {...props}
-      >
-        <span
-          className={`${
-            checked ? "translate-x-5" : "translate-x-1"
-          } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
-        />
-      </button>
-      <span className="ml-2 text-sm text-gray-700">{label}</span>
-    </div>
-  );
-};
+          checked ? "translate-x-5" : "translate-x-1"
+        } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+      />
+    </Switch>
+    <span className="ml-2 text-sm text-[#522c77]">{label}</span>
+  </div>
+);
 
-export const AuthContainer = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-8 px-4">
-      {children}
-    </div>
-  );
-};
+// Container
+export const AuthContainer = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen bg-[#faf6fe] flex flex-col justify-center py-8 px-4">
+    {children}
+  </div>
+);
 
-export const AuthCard = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="mt-6 mx-auto w-full max-w-sm">
-      <div className="bg-white py-6 px-4 shadow rounded-lg">{children}</div>
-    </div>
-  );
-};
+// Card
+export const AuthCard = ({ children }: { children: React.ReactNode }) => (
+  <div className="mt-6 mx-auto w-full max-w-sm">
+    <div className="bg-white py-6 px-4 shadow rounded-lg">{children}</div>
+  </div>
+);
 
+// Header
 export const AuthHeader = ({
   title,
   subtitle,
@@ -197,24 +192,22 @@ export const AuthHeader = ({
   subtitle?: string;
   link?: string;
   linkText?: string;
-}) => {
-  return (
-    <div className="mx-auto w-full max-w-sm">
-      <h2 className="text-center text-2xl font-bold text-gray-900">{title}</h2>
-      {subtitle && (
-        <div className="mt-2 text-center">
-          {link ? (
-            <a
-              href={link}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              {linkText || subtitle}
-            </a>
-          ) : (
-            <p className="text-sm text-gray-500">{subtitle}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+}) => (
+  <div className="mx-auto w-full max-w-sm">
+    <h2 className="text-center text-2xl font-bold text-[#351556]">{title}</h2>
+    {subtitle && (
+      <div className="mt-2 text-center">
+        {link ? (
+          <a
+            href={link}
+            className="text-sm font-medium text-[#8b4ecf] hover:text-[#763cb4]"
+          >
+            {linkText || subtitle}
+          </a>
+        ) : (
+          <p className="text-sm text-[#522c77]">{subtitle}</p>
+        )}
+      </div>
+    )}
+  </div>
+);
