@@ -19,9 +19,9 @@ type apiRequest struct {
 // signup handles user registration.  Modified to receive body string.
 func (ar *apiRequest) signup() {
 
-	var newUser User
+	var request RegistrationRequest
 	// Use bodyString to decode the JSON
-	if err := json.Unmarshal([]byte(ar.requestBody), &newUser); err != nil {
+	if err := json.Unmarshal([]byte(ar.requestBody), &request); err != nil {
 		log.Printf("Invalid request body: %v\n", err)
 
 		ar.responseCode = http.StatusBadRequest
@@ -29,8 +29,11 @@ func (ar *apiRequest) signup() {
 		return
 	}
 
+	user := request.User
+	user.Password = request.Password
+
 	// Input validation (basic - expand for production)
-	if strings.TrimSpace(newUser.Email) == "" || strings.TrimSpace(newUser.Password) == "" {
+	if strings.TrimSpace(user.Email) == "" || strings.TrimSpace(user.Password) == "" {
 		log.Println("Username and password are required")
 
 		ar.responseCode = http.StatusBadRequest
@@ -39,18 +42,19 @@ func (ar *apiRequest) signup() {
 	}
 
 	// Check if the username already exists
-	if _, err := db.Connection.FetchUserByEmail(newUser.Email); err == nil {
+	if _, err := db.Connection.FetchUserByEmail(user.Email); err == nil {
 		ar.responseCode = http.StatusConflict // HTTP 409 Conflict
-		ar.response = "Username already exists"
+		ar.response = "Email already exists"
 		return
 	}
 
-	// Create the user
-	user := db.User{
-		Email:    newUser.Email,
-		Password: newUser.Password,
+	if imageId, err := db.Connection.UploadImage(request.ImageFilename, request.ImageMimetype, request.ImageData); err == nil && imageId > 0 {
+		user.ProfilePicture = imageId
+	} else {
+		log.Printf("Failed to upload Image: %v\n", err)
 	}
 
+	// Create the user
 	userId, err := db.Connection.CreateUser(user)
 	if err != nil {
 		ar.responseCode = http.StatusInternalServerError
@@ -58,10 +62,10 @@ func (ar *apiRequest) signup() {
 		return
 	}
 
-	log.Printf("New user registered: %s\n", newUser.Email)
+	log.Printf("New user registered: %s\n", user.Email)
 
 	c := Claims{
-		Email: newUser.Email,
+		Email: user.Email,
 		Id:    userId,
 	}
 
@@ -75,8 +79,7 @@ func (ar *apiRequest) signup() {
 	}
 
 	response := loginResponse{
-		Email: newUser.Email,
-		Id:    userId,
+		User:  user,
 		Token: *token,
 	}
 
@@ -95,9 +98,9 @@ func (ar *apiRequest) signup() {
 // login handles user login.  Modified to receive body string.
 func (ar *apiRequest) login() {
 
-	var loginUser User
+	var request LoginRequest
 	// Use bodyString to decode the JSON
-	if err := json.Unmarshal([]byte(ar.requestBody), &loginUser); err != nil {
+	if err := json.Unmarshal([]byte(ar.requestBody), &request); err != nil {
 		log.Printf("Invalid request body: %v\n", err)
 
 		ar.responseCode = http.StatusBadRequest
@@ -106,7 +109,7 @@ func (ar *apiRequest) login() {
 	}
 
 	// Basic input validation
-	if strings.TrimSpace(loginUser.Email) == "" || strings.TrimSpace(loginUser.Password) == "" {
+	if strings.TrimSpace(request.Email) == "" || strings.TrimSpace(request.Password) == "" {
 		log.Println("Username and password are required")
 
 		ar.responseCode = http.StatusBadRequest
@@ -115,7 +118,7 @@ func (ar *apiRequest) login() {
 	}
 
 	// Find the user
-	user, err := db.Connection.FetchUserByEmail(loginUser.Email)
+	user, err := db.Connection.FetchUserByEmail(request.Email)
 
 	if err != nil {
 		log.Printf("Invalid credentials - user not found: %s\n", err)
@@ -125,15 +128,15 @@ func (ar *apiRequest) login() {
 	}
 
 	// Verify the password
-	err = db.VerifyPassword(user.Password, loginUser.Password)
+	err = db.VerifyPassword(user.Password, request.Password)
 	if err != nil {
-		log.Printf("Password verification failed for %s: %v\n", loginUser.Email, err)
+		log.Printf("Password verification failed for %s: %v\n", request.Email, err)
 		ar.responseCode = http.StatusUnauthorized // 401 Unauthorized
 		ar.response = "Invalid credentials"
 		return
 	}
 
-	log.Printf("User %s logged in\n", loginUser.Email)
+	log.Printf("User %s logged in\n", request.Email)
 	// Successful login generating user claims and sending them
 
 	c := Claims{
@@ -151,8 +154,7 @@ func (ar *apiRequest) login() {
 	}
 
 	response := loginResponse{
-		Email: user.Email,
-		Id:    user.Id,
+		User:  *user,
 		Token: *token,
 	}
 

@@ -10,6 +10,7 @@ import {
   AuthInput,
   AuthButton,
 } from "@/components/AuthStyles";
+import {Login} from "@/hooks/auth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -21,17 +22,11 @@ const LoginPage = () => {
     e.preventDefault();
     setError(null);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // credentials set to include cookies
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText);
+      const response = await Login(email, password);
+      if (response.error) {
+        return setError(response.error)
       }
+
       // If successful, navigate to home or profile
       router.push("/");
     } catch (err: any) {

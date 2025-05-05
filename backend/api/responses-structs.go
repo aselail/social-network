@@ -1,7 +1,8 @@
 package api
 
+import "backend/db"
+
 type loginResponse struct {
-	Email string `json:"email"`
-	Id    int    `json:"id"`
-	Token string `json:"token"`
+	User  db.User `json:"user"`
+	Token string  `json:"token"`
 }

@@ -1,11 +1,20 @@
 package api
 
+import "backend/db"
+
 type API struct {
 	Action string `json:"action"`
 }
 
-// User represents a user in the system.
-type User struct {
+type RegistrationRequest struct {
+	User          db.User `json:"user"`
+	Password      string  `json:"password"`
+	ImageFilename string  `json:"imageFilename"`
+	ImageMimetype string  `json:"imageMimetype"`
+	ImageData     []byte  `json:"imageData"`
+}
+
+type LoginRequest struct {
 	Email    string `json:"email"`
-	Password string `json:"password"` // Store hashed passwords!
+	Password string `json:"password"`
 }

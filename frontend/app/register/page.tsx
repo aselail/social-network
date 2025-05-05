@@ -13,18 +13,19 @@ import {
   AuthTextarea,
   AuthToggle,
 } from "@/components/AuthStyles";
-import ImageUpload from "@/components/ImageUpload";
+import ImageUpload, {ImageProps} from "@/components/ImageUpload";
+import {Register} from "@/hooks/auth";
 
 const RegisterPage = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
+  const [age, setAge] = useState<number | undefined>(undefined);
+  const [gender, setGender] = useState<number | undefined>(undefined);
   const [nickname, setNickname] = useState("");
   const [about, setAbout] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<ImageProps | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -33,29 +34,28 @@ const RegisterPage = () => {
     e.preventDefault();
     setError(null);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            first_name: firstName,
-            last_name: lastName,
-            email,
-            password,
-            age: age ? parseInt(age) : undefined,
-            gender,
-            nickname,
-            about,
-            profile_public: isPublic,
-            profile_image: imagePreview,
-          }),
-        }
-      );
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText);
+      const resp = await Register({
+
+        User: {
+          About: about,
+          Age: age,
+          Email: email,
+          FirstName: firstName,
+          Gender: gender,
+          LastName: lastName,
+          Nickname: nickname,
+          Public: isPublic,
+        },
+        Password: password,
+        ImageData: imagePreview?.data.replace(/.*base64,/, ''),
+        ImageFilename: imagePreview?.fileName,
+        ImageMimetype: imagePreview?.mimeType,
+      })
+
+      if (resp.error) {
+        return setError(resp.error);
       }
+
       router.push("/login");
     } catch (err: any) {
       setError(err.message);
@@ -118,19 +118,19 @@ const RegisterPage = () => {
               label="Age"
               id="age"
               type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
+              value={'' + age}
+              onChange={(e) => setAge(parseInt(e.target.value))}
             />
             <AuthSelect
               label="Gender"
               id="gender"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
+              value={'' + gender}
+              onChange={(e) => setGender(parseInt(e.target.value))}
               options={[
                 { value: "", label: "Select" },
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
+                { value: "1", label: "Male" },
+                { value: "2", label: "Female" },
+                { value: "3", label: "Other" },
               ]}
             />
           </div>

@@ -2,8 +2,14 @@
 
 import React, { useState } from "react";
 
+export type ImageProps = {
+  data: string;
+  mimeType: string;
+  fileName: string;
+}
+
 interface ImageUploadProps {
-  onImageChange: (imageData: string | null) => void;
+  onImageChange: (image: ImageProps | undefined) => void;
   initialImage?: string | null;
 }
 
@@ -20,7 +26,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       reader.onloadend = () => {
         const result = reader.result as string;
         setImagePreview(result);
-        onImageChange(result);
+
+        const image: ImageProps = {
+          data: result,
+          fileName: file.name,
+          mimeType: file.type,
+        }
+
+        onImageChange(image);
       };
       reader.readAsDataURL(file);
     }

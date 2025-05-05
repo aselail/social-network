@@ -9,14 +9,13 @@ import (
 
 // Extract the "action" from the request body (JSON)
 func Router(w http.ResponseWriter, r *http.Request) {
+	// Handle preflight request for CORS
+	w.Header().Set("Allow", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	if r.Method == http.MethodOptions {
-		// Handle preflight request for CORS (if needed).
-		w.Header().Set("Allow", "POST, OPTIONS")                        // Include allowed methods
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS") // Add CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")              // Adjust as needed (e.g., your specific origin)
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")  // Add any other headers you need
-
 		w.WriteHeader(http.StatusOK)
 		return // Preflight request handled
 	}

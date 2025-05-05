@@ -93,10 +93,11 @@ func testDB() {
 		Password:  "password123",
 		FirstName: "name",
 		LastName:  "name",
-		Metadata: db.UserMetadata{
-			Age:    12,
-			Gender: 0,
-		},
+		Age:       16,
+		Nickname:  "nickname",
+		About:     "about",
+		Gender:    1,
+		Public:    true,
 	}
 
 	connection := db.Connection
@@ -117,8 +118,7 @@ func testDB() {
 
 	fmt.Printf("Fetched User: %+v\n", fetchedUser)
 
-	// Example: Update the user
-	fetchedUser.Metadata.Gender = 1
+	fetchedUser.Gender = 2
 	err = connection.UpdateUser(*fetchedUser)
 	if err != nil {
 		log.Printf("Failed to update user: %v", err)
