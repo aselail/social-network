@@ -20,7 +20,7 @@ const RegisterPage = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [age, setAge] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [nickname, setNickname] = useState("");
   const [about, setAbout] = useState("");
@@ -43,7 +43,7 @@ const RegisterPage = () => {
             last_name: lastName,
             email,
             password,
-            age: age ? parseInt(age) : undefined,
+            date_of_birth: dateOfBirth,
             gender,
             nickname,
             about,
@@ -115,11 +115,11 @@ const RegisterPage = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <AuthInput
-              label="Age"
-              id="age"
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
+              label="Date of Birth"
+              id="dateOfBirth"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
             />
             <AuthSelect
               label="Gender"

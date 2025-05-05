@@ -28,12 +28,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-[#522c77]">
         Profile Image
       </label>
       <div className="mt-1 flex justify-center">
         <div className="relative">
-          <div className="h-20 w-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+          <div className="h-20 w-20 rounded-lg border-2 border-dashed border-[#e7dbf9] flex items-center justify-center">
             {imagePreview ? (
               <img
                 src={imagePreview}
@@ -42,7 +42,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               />
             ) : (
               <svg
-                className="h-6 w-6 text-gray-400"
+                className="h-6 w-6 text-[#bb96ea]"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
