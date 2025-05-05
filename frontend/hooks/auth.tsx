@@ -10,7 +10,7 @@ type UserInfo = {
     firstName: string;
     lastName: string;
     Gender: string;
-    Age: string
+    Dob: string
 }
 
 export const UserInfo: UserInfo = {
@@ -20,7 +20,7 @@ export const UserInfo: UserInfo = {
     firstName: '',
     lastName: '',
     Gender: '',
-    Age: '',
+    Dob: '',
 }
 
 export async function Login(email: string, password: string): Promise<{ UserInfo?: UserInfo; error?: string }> {
@@ -58,7 +58,7 @@ type RegisterParams = {
         FirstName: string
         LastName: string
         Gender?: number
-        Age?: number
+        Dob: string
         Nickname: string
         About: string
     }

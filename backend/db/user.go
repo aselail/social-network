@@ -19,7 +19,7 @@ type User struct {
 	FirstName      string `json:"firstName,omitempty"`
 	LastName       string `json:"lastName,omitempty"`
 	Gender         int    `json:"gender,omitempty"` // male 1 | female 2 | other 3
-	Age            int    `json:"age,omitempty"`
+	Dob            string `json:"dob,omitempty"`
 	Nickname       string `json:"nickname,omitempty"`
 	About          string `json:"about,omitempty"`
 	ProfilePicture int    `json:"profilePicture,omitempty"`
@@ -48,7 +48,7 @@ func (db *Database) CreateUser(u User) (int, error) {
 	}
 
 	stmt, err := db.db.Prepare(`
-		INSERT INTO user (archive, public, email, password, first_name, last_name, gender, age, nickname, about, profile_picture) 
+		INSERT INTO user (archive, public, email, password, first_name, last_name, gender, dob, nickname, about, profile_picture) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
@@ -56,7 +56,7 @@ func (db *Database) CreateUser(u User) (int, error) {
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(u.Archive, u.Public, u.Email, hashedPassword, u.FirstName, u.LastName, u.Gender, u.Age, u.Nickname, u.About, u.ProfilePicture)
+	result, err := stmt.Exec(u.Archive, u.Public, u.Email, hashedPassword, u.FirstName, u.LastName, u.Gender, u.Dob, u.Nickname, u.About, u.ProfilePicture)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return 0, fmt.Errorf("email already exists: %w", err)
@@ -74,7 +74,7 @@ func (db *Database) CreateUser(u User) (int, error) {
 
 // FetchUser retrieves a user record from the database by user ID.
 func (db *Database) FetchUser(userID int) (*User, error) {
-	row := db.db.QueryRow(`SELECT id, archive, public, email, password, first_name, last_name, gender, age, nickname, about, profile_picture FROM user WHERE id = ?`, userID)
+	row := db.db.QueryRow(`SELECT id, archive, public, email, password, first_name, last_name, gender, dob, nickname, about, profile_picture FROM user WHERE id = ?`, userID)
 
 	if user, err := scanUserRecord(row); err != nil {
 		return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -85,7 +85,7 @@ func (db *Database) FetchUser(userID int) (*User, error) {
 
 // FetchUserByEmail retrieves a user record from the database by email.
 func (db *Database) FetchUserByEmail(email string) (*User, error) {
-	row := db.db.QueryRow(`SELECT id, archive, public, email, password, first_name, last_name, gender, age, nickname, about, profile_picture FROM user WHERE email = ?`, email)
+	row := db.db.QueryRow(`SELECT id, archive, public, email, password, first_name, last_name, gender, dob, nickname, about, profile_picture FROM user WHERE email = ?`, email)
 
 	if user, err := scanUserRecord(row); err != nil {
 		return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -97,7 +97,7 @@ func (db *Database) FetchUserByEmail(email string) (*User, error) {
 func scanUserRecord(row *sql.Row) (*User, error) {
 	var u User
 
-	err := row.Scan(&u.Id, &u.Archive, &u.Public, &u.Email, &u.Password, &u.FirstName, &u.LastName, &u.Gender, &u.Age, &u.Nickname, &u.About, &u.ProfilePicture)
+	err := row.Scan(&u.Id, &u.Archive, &u.Public, &u.Email, &u.Password, &u.FirstName, &u.LastName, &u.Gender, &u.Dob, &u.Nickname, &u.About, &u.ProfilePicture)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -131,7 +131,7 @@ func (db *Database) UpdateUser(user User) error {
 		SET public = ?,
 			first_name = ?,
 			last_name = ?,
-			age = ?,
+			dob = ?,
 			nickname = ?,
 			about = ?,
 			gender = ?,
@@ -148,7 +148,7 @@ func (db *Database) UpdateUser(user User) error {
 		user.Public,
 		user.FirstName,
 		user.LastName,
-		user.Age,
+		user.Dob,
 		user.Nickname,
 		user.About,
 		user.Gender,

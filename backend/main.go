@@ -93,7 +93,7 @@ func testDB() {
 		Password:  "password123",
 		FirstName: "name",
 		LastName:  "name",
-		Age:       16,
+		Dob:       "2005-05-19",
 		Nickname:  "nickname",
 		About:     "about",
 		Gender:    1,

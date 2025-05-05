@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user
     password        TEXT                  NOT NULL,
     first_name      TEXT                  NOT NULL,
     last_name       TEXT                  NOT NULL,
-    age             INT                   NOT NULL,
+    dob             DATE                  NOT NULL,
     nickname        TEXT,
     about           TEXT,
     gender          INT,

@@ -15,7 +15,7 @@
 firstname/last name
 email
 password
-age
+dob
 gender
 image
 nickname

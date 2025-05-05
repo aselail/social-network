@@ -21,7 +21,7 @@ const RegisterPage = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState<number | undefined>(undefined);
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState<number | undefined>(undefined);
   const [nickname, setNickname] = useState("");
   const [about, setAbout] = useState("");
@@ -38,7 +38,7 @@ const RegisterPage = () => {
 
         User: {
           About: about,
-          Age: age,
+          Dob: dateOfBirth,
           Email: email,
           FirstName: firstName,
           Gender: gender,
