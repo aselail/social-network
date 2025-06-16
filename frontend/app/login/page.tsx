@@ -1,38 +1,36 @@
-"use client";
-// This is a client-side component for the login page
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+'use client'
 import {
+  AuthButton,
+  AuthCard,
   AuthContainer,
   AuthHeader,
-  AuthCard,
   AuthInput,
-  AuthButton,
-} from "@/components/AuthStyles";
-import {Login} from "@/hooks/auth";
+} from '@/components/AuthStyles'
+import { Login } from '@/hooks/auth'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
     try {
-      const response = await Login(email, password);
+      const response = await Login(email, password)
       if (response.error) {
         return setError(response.error)
       }
 
       // If successful, navigate to home or profile
-      router.push("/");
+      router.push('/')
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     }
-  };
+  }
 
   return (
     <AuthContainer>
@@ -72,7 +70,7 @@ const LoginPage = () => {
         </form>
       </AuthCard>
     </AuthContainer>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

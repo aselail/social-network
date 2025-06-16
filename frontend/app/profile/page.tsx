@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Profile {
@@ -27,6 +28,8 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
+      const searchParams = useSearchParams();
+      const id = searchParams.get('id');  // TODO use it
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
         credentials: "include",
       });

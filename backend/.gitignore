@@ -24,9 +24,6 @@ go.work.sum
 # env file
 .env
 
-.vs/
-.idea/
-
 *.pub
 *.pem
 *.sqlite3

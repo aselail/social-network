@@ -25,16 +25,16 @@ COPY backend/ ./
 # Build the Go application
 # -ldflags="-w -s" reduces binary size
 # CGO_ENABLED=0 creates a static binary, good for alpine images
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/server ./main.go
+RUN GOOS=linux go build -ldflags="-w -s" -o /app/server ./main.go
 
 # Final Image
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=backend-builder /app/server /app/server
+COPY --from=backend-builder /app/server .
+COPY --from=backend-builder /app/backend/database-migrations ./database-migrations
 COPY --from=frontend-builder /app/frontend/out ./static
 
 EXPOSE 8080
-
 CMD ["/app/server"]
