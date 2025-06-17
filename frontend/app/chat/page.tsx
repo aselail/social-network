@@ -1,10 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, {useState, useEffect, useRef, Suspense} from 'react'
 import './chat-view.css'
+import {getUserInfo, isUserLoggedIn} from '@/hooks/Auth'
+import Spinner from '@/components/Spinner'
+import {useAuth} from '@/components/AuthContext'
 
 function ChatView() {
-  const [username, setUsername] = useState('')
+  const {isAuthenticated: isAuth} = useAuth()
+  const token = (isAuth && getUserInfo()) || null
+
+  const username = token?.nickname ?? token?.firstName ?? 'missing username'
+
   const [message, setMessage] = useState('')
   const [allMessages, setAllMessages] = useState<any[]>([])
   const [users, setUsers] = useState([])
@@ -21,26 +28,35 @@ function ChatView() {
     if (!selectedUser) {
       return msg.to === ''
     }
+
     return (
-      (msg.from === username && msg.to === selectedUser) ||
+      (msg.from == username && msg.to === selectedUser) ||
       (msg.to === username && msg.from === selectedUser) ||
       (msg.to === selectedUser && groups.includes(selectedUser))
     )
   })
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (!isAuth) {
+      setIsConnected(false)
+      console.error('not authroized')
+      return
     }
-  }, [filteredMessages])
+
+    connectToChat()
+
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({behavior: 'smooth'})
+    }
+  }, [filteredMessages, isAuth])
 
   const connectToChat = () => {
-    if (!username.trim()) return
+    if (!username.trim() || isConnected) return
 
     ws.current = new WebSocket('ws://localhost:8080/ws')
 
     ws.current.onopen = () => {
-      ws.current!.send(
+      ws.current?.send(
         JSON.stringify({
           type: 'connect',
           from: username,
@@ -106,10 +122,9 @@ function ChatView() {
 
   return (
     <div className="form-container">
-      <h2>Go + React Chat</h2>
+      <h2>Chat Page</h2>
 
-      {!isConnected ? (
-        <div className="connect-form">
+      {/* <div className="connect-form">
           <input
             type="text"
             placeholder="Enter your name"
@@ -119,7 +134,12 @@ function ChatView() {
           <button onClick={connectToChat} disabled={!username}>
             Connect
           </button>
-        </div>
+        </div> */}
+
+      {!isConnected ? (
+        <Spinner>
+          <p className="text-lg italic text-gray-500">Loading connection form... Please wait.</p>
+        </Spinner>
       ) : (
         <div className="chat-container">
           <div className="user-list">

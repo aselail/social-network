@@ -1,4 +1,5 @@
 'use client'
+import { useAuth } from '@/components/AuthContext'
 import {
   AuthButton,
   AuthCard,
@@ -6,7 +7,7 @@ import {
   AuthHeader,
   AuthInput,
 } from '@/components/AuthStyles'
-import { Login } from '@/hooks/auth'
+import { Login } from '@/hooks/Auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -14,7 +15,9 @@ const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  
   const router = useRouter()
+  const {update} = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,7 +28,7 @@ const LoginPage = () => {
         return setError(response.error)
       }
 
-      // If successful, navigate to home or profile
+      update()
       router.push('/')
     } catch (err: any) {
       setError(err.message)

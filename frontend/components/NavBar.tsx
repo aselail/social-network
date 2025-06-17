@@ -1,5 +1,6 @@
-import React from 'react'
-import {BellIcon, ChatBubbleIcon, GlobeIcon, PersonIcon} from '@radix-ui/react-icons'
+'use client'
+
+import { getUserInfo, isUserLoggedIn, Logout } from '@/hooks/Auth'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,19 +9,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@radix-ui/react-dropdown-menu'
+import { BellIcon, ChatBubbleIcon, GlobeIcon, PersonIcon } from '@radix-ui/react-icons'
 import Link from 'next/link'
+import React, { useEffect } from 'react'
+import { useAuth } from './AuthContext'
 
 export default function NavBar() {
+  const isAuth = isUserLoggedIn()
+  const token = (isAuth && getUserInfo()) || null
+  const {update, isAuthenticated} = useAuth()
+
+  function navLogout() {
+    Logout()
+    update()
+  }
+
+  useEffect(() => {}, [isAuthenticated])
+
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b shadow-sm">
       <div className="flex gap-4 items-center">
-        <span className="text-xl font-bold">SocialNet</span>
+        <Link href="/" className="text-xl font-bold">
+          SocialNet
+        </Link>
+
         <Link href="/groups" className="hover:text-blue-500 flex items-center gap-1">
           <GlobeIcon /> Groups
         </Link>
-        <a href="/chat" className="hover:text-blue-500 flex items-center gap-1">
-          <ChatBubbleIcon /> Chat
-        </a>
+        {isAuth && (
+          <a href="/chat" className="hover:text-blue-500 flex items-center gap-1">
+            <ChatBubbleIcon /> Chat
+          </a>
+        )}
         <Link href="/profile" className="hover:text-blue-500 flex items-center gap-1">
           <PersonIcon /> Profile
         </Link>
@@ -45,12 +65,23 @@ export default function NavBar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Link href="/login" className="text-blue-600 font-medium hover:underline">
-          Login
-        </Link>
-        <Link href="/register" className="text-blue-600 font-medium hover:underline">
-          Register
-        </Link>
+        {isAuth ? (
+          <>
+            Hello, {token!.nickname}
+            <button onClick={navLogout} className="text-blue-600 font-medium hover:underline">
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/login" className="text-blue-600 font-medium hover:underline">
+              Login
+            </Link>
+            <Link href="/register" className="text-blue-600 font-medium hover:underline">
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   )

@@ -1,8 +1,7 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
 import {
   AuthContainer,
   AuthHeader,
@@ -12,30 +11,32 @@ import {
   AuthSelect,
   AuthTextarea,
   AuthToggle,
-} from "@/components/AuthStyles";
-import ImageUpload, {ImageProps} from "@/components/ImageUpload";
-import {Register} from "@/hooks/auth";
+} from '@/components/AuthStyles'
+import ImageUpload, {ImageProps} from '@/components/ImageUpload'
+import {Register} from '@/hooks/Auth'
+import { useAuth } from '@/components/AuthContext'
 
 const RegisterPage = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState<number | undefined>(undefined);
-  const [nickname, setNickname] = useState("");
-  const [about, setAbout] = useState("");
-  const [imagePreview, setImagePreview] = useState<ImageProps | undefined>(undefined);
-  const [isPublic, setIsPublic] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [gender, setGender] = useState<number | undefined>(undefined)
+  const [nickname, setNickname] = useState('')
+  const [about, setAbout] = useState('')
+  const [imagePreview, setImagePreview] = useState<ImageProps | undefined>(undefined)
+  const [isPublic, setIsPublic] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const router = useRouter()
+  const {update} = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
     try {
       const resp = await Register({
-
         User: {
           About: about,
           Dob: dateOfBirth,
@@ -53,22 +54,19 @@ const RegisterPage = () => {
       })
 
       if (resp.error) {
-        return setError(resp.error);
+        return setError(resp.error)
       }
 
-      router.push("/login");
+      update()
+      router.push('/login')
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     }
-  };
+  }
 
   return (
     <AuthContainer>
-      <AuthHeader
-        title="Create your account"
-        subtitle="Already have an account? Login"
-        link="/login"
-      />
+      <AuthHeader title="Create your account" subtitle="Already have an account? Login" link="/login" />
 
       <AuthCard>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -127,41 +125,30 @@ const RegisterPage = () => {
               value={'' + gender}
               onChange={(e) => setGender(parseInt(e.target.value))}
               options={[
-                { value: "", label: "Select" },
-                { value: "1", label: "Male" },
-                { value: "2", label: "Female" },
+                {value: '', label: 'Select'},
+                {value: '1', label: 'Male'},
+                {value: '2', label: 'Female'},
               ]}
             />
           </div>
 
-          <AuthInput
-            label="Nickname"
-            id="nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
+          <AuthInput label="Nickname" id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} />
 
           <ImageUpload onImageChange={setImagePreview} />
 
-          <AuthTextarea
-            label="About Me"
-            id="about"
-            value={about}
-            onChange={(e) => setAbout(e.target.value)}
-            rows={2}
-          />
+          <AuthTextarea label="About Me" id="about" value={about} onChange={(e) => setAbout(e.target.value)} rows={2} />
 
           <AuthToggle
             checked={isPublic}
             onChange={setIsPublic}
-            label={isPublic ? "Public Profile" : "Private Profile"}
+            label={isPublic ? 'Public Profile' : 'Private Profile'}
           />
 
           <AuthButton type="submit">Sign Up</AuthButton>
         </form>
       </AuthCard>
     </AuthContainer>
-  );
-};
+  )
+}
 
-export default RegisterPage;
+export default RegisterPage
