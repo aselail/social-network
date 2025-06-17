@@ -125,18 +125,11 @@ function ChatView() {
           <div className="user-list">
             <h3>Online Users</h3>
             <ul>
-              <li
-                className={!selectedUser ? 'selected' : ''}
-                onClick={() => setSelectedUser('')}
-              >
+              <li className={!selectedUser ? 'selected' : ''} onClick={() => setSelectedUser('')}>
                 Everyone
               </li>
               {users.map((user, idx) => (
-                <li
-                  key={idx}
-                  className={selectedUser === user ? 'selected' : ''}
-                  onClick={() => setSelectedUser(user)}
-                >
+                <li key={idx} className={selectedUser === user ? 'selected' : ''} onClick={() => setSelectedUser(user)}>
                   {user}
                 </li>
               ))}
@@ -173,10 +166,7 @@ function ChatView() {
                     </label>
                   ))}
                 </div>
-                <button
-                  onClick={createGroup}
-                  disabled={!groupName || selectedGroupUsers.length === 0}
-                >
+                <button onClick={createGroup} disabled={!groupName || selectedGroupUsers.length === 0}>
                   Create
                 </button>
               </div>
@@ -186,12 +176,7 @@ function ChatView() {
           <div className="chat-box">
             <div className="messages">
               {filteredMessages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`message ${
-                    msg.from === username ? 'sent' : 'received'
-                  }`}
-                >
+                <div key={idx} className={`message ${msg.from === username ? 'sent' : 'received'}`}>
                   <div className="message-header">
                     <strong>{msg.from === username ? 'You' : msg.from}</strong>
                     <span className="message-time">{msg.time || ''}</span>
@@ -205,9 +190,7 @@ function ChatView() {
             <div className="message-input">
               <input
                 type="text"
-                placeholder={`Type a message${
-                  selectedUser ? ` to ${selectedUser}` : ''
-                }...`}
+                placeholder={`Type a message${selectedUser ? ` to ${selectedUser}` : ''}...`}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}

@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import "../auth.css";
+import './auth.css'
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className="auth-pages">{children}</div>;
+type props = {
+  children: React.ReactNode
+}
+
+export default function AuthLayout({children}: props) {
+  return <div className="auth-pages">{children}</div>
 }
