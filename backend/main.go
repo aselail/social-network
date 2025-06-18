@@ -154,4 +154,12 @@ func testDB() {
 
 	userJSON, _ := fetchedUser.Marshal()
 	fmt.Println(string(userJSON))
+
+	c, err := connection.FetchConversationsForUser(2)
+
+	if err != nil {
+		log.Printf("Failed to fetch Conversations for user: %v", err)
+	} else {
+		fmt.Printf("Conversations: %+v\n", c)
+	}
 }

@@ -11,21 +11,21 @@ CREATE TABLE IF NOT EXISTS conversation (
     last_message_at TEXT DEFAULT (datetime('now', 'utc')) -- Updated by a trigger
 );
 
-CREATE TABLE IF NOT EXISTS conversation_participant (
+CREATE TABLE conversation_participant (
     user INTEGER NOT NULL,
     conversation INTEGER NOT NULL,
     
     -- The composite primary key prevents a user from being added to the same conversation twice.
     PRIMARY KEY (user, conversation),
     
-    FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE,
     FOREIGN KEY (conversation) REFERENCES conversation(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS message (
     id INTEGER PRIMARY KEY,
-    conversation_id INTEGER NOT NULL,
-    sender_id INTEGER, -- Can be NULL for system message or if user is deleted
+    conversation INTEGER NOT NULL,
+    sender INTEGER, -- Can be NULL for system message or if user is deleted
     
     content TEXT, -- The main message content
     message_type TEXT NOT NULL DEFAULT 'text' CHECK(message_type IN ('text', 'image', 'file', 'system')),
@@ -33,20 +33,19 @@ CREATE TABLE IF NOT EXISTS message (
     sent_at TEXT NOT NULL DEFAULT (datetime('now', 'utc')),
     status TEXT NOT NULL DEFAULT 'sent' CHECK(status IN ('sent', 'delivered', 'read')),
     
-    FOREIGN KEY (conversation_id) REFERENCES conversation(id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (conversation) REFERENCES conversation(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender) REFERENCES user(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_message_conversation_id ON message(conversation_id);
-CREATE INDEX idx_message_sender_id ON message(sender_id);
-CREATE INDEX idx_message_sent_at ON message(sent_at);
-CREATE INDEX idx_conversation_participant_user ON conversation_participant(user_id);
-CREATE INDEX idx_conversation_participant_conversation ON conversation_participant(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_participant_user ON conversation_participant(user);
+CREATE INDEX IF NOT EXISTS idx_participant_conversation ON conversation_participant(conversation);
+CREATE INDEX IF NOT EXISTS idx_message_conversation_sent_at ON message(conversation, sent_at);
+CREATE INDEX IF NOT EXISTS idx_conversation_last_message_at ON conversation(last_message_at);
 
 CREATE TRIGGER update_conversation_timestamp_on_new_message
 AFTER INSERT ON message
 BEGIN
     UPDATE conversation
     SET last_message_at = NEW.sent_at
-    WHERE id = NEW.conversation_id;
+    WHERE id = NEW.conversation;
 END;

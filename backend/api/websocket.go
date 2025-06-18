@@ -31,20 +31,20 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &Client{conn: ws, username: msg.From}
+	client := &Client{conn: ws, id: msg.From}
 	hub.addClient(client)
 
-	fmt.Printf("Client connected: %s\n", client.username)
+	fmt.Printf("Client connected: %s\n", client.id)
 
-	hub.sendUserList()
-	hub.sendGroupList(client.username)
+	hub.sendUserList(client)
+	//hub.sendGroupList(client.username)
 
 	go func() {
 		defer func() {
 			hub.removeClient(client)
-			hub.sendUserList()
+			// hub.sendUserList()
 
-			fmt.Printf("Client disconnected: %s\n", client.username)
+			fmt.Printf("Client disconnected: %s\n", client.id)
 		}()
 
 		for {
@@ -59,7 +59,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			fmt.Printf("Received message from %s: %s\n", client.username, msg)
+			fmt.Printf("Received message from %s: %s\n", client.id, msg)
 			hub.processs(msg)
 		}
 	}()

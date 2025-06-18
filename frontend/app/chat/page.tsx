@@ -1,22 +1,30 @@
 'use client'
 
-import React, {useState, useEffect, useRef, Suspense} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import './chat-view.css'
-import {getUserInfo, isUserLoggedIn} from '@/hooks/Auth'
+import {getUserInfo} from '@/hooks/Auth'
 import Spinner from '@/components/Spinner'
 import {useAuth} from '@/components/AuthContext'
 
+
+type Conversation = {
+    id: number
+    type: 'direct' | 'group'
+    name: string
+    last_message_at: string
+    unread_message_count: Date
+}
+
 function ChatView() {
   const {isAuthenticated: isAuth} = useAuth()
-  const token = (isAuth && getUserInfo()) || null
-
-  const username = token?.nickname ?? token?.firstName ?? 'missing username'
+  const userInfo = (isAuth && getUserInfo()) || null
 
   const [message, setMessage] = useState('')
   const [allMessages, setAllMessages] = useState<any[]>([])
   const [users, setUsers] = useState([])
   const [groups, setGroups] = useState<any[]>([])
-  const [selectedUser, setSelectedUser] = useState('')
+  const [selectedConversation, setSelectedConversation] = useState<number>(0)
+  const [conversationList, setConversationList] = useState<Conversation[] | null>(null)
   const [groupName, setGroupName] = useState('')
   const [selectedGroupUsers, setSelectedGroupUsers] = useState([])
   const [showGroupForm, setShowGroupForm] = useState(false)
@@ -24,23 +32,14 @@ function ChatView() {
   const ws = useRef<WebSocket | null>(null)
   const messagesEndRef = useRef<any>(null)
 
-  const filteredMessages = allMessages.filter((msg) => {
-    if (!selectedUser) {
-      return msg.to === ''
-    }
-
-    return (
-      (msg.from == username && msg.to === selectedUser) ||
-      (msg.to === username && msg.from === selectedUser) ||
-      (msg.to === selectedUser && groups.includes(selectedUser))
-    )
-  })
+  const filteredMessages = allMessages.filter((msg) => msg.conversation == selectedConversation)
 
   useEffect(() => {
     if (!isAuth) {
       setIsConnected(false)
-      console.error('not authroized')
-      return
+      ws.current?.close()
+      ws.current = null
+      return console.error('not authroized')
     }
 
     connectToChat()
@@ -51,29 +50,34 @@ function ChatView() {
   }, [filteredMessages, isAuth])
 
   const connectToChat = () => {
-    if (!username.trim() || isConnected) return
+    if (isConnected || userInfo == null) return
 
     ws.current = new WebSocket('ws://localhost:8080/ws')
 
     ws.current.onopen = () => {
+
       ws.current?.send(
         JSON.stringify({
           type: 'connect',
-          from: username,
+          from: userInfo.id,
         })
       )
-      setIsConnected(true)
     }
 
     ws.current.onmessage = (event) => {
       const msg = JSON.parse(event.data)
+      console.log(msg)
 
       if (msg.type === 'user_list') {
-        setUsers(msg.users.filter((u: string) => u !== username))
+        setUsers(msg.users.filter((u: string) => u != userInfo.nickname))
       } else if (msg.type === 'group_list' && Array.isArray(msg.users)) {
         setGroups((prev) => Array.from(new Set([...prev, ...msg.users])))
       } else if (msg.type === 'message') {
         setAllMessages((prev) => [...prev, msg])
+      } else if (msg.type == 'conversation_list') {
+         const data = msg.conversation as Conversation[]
+         setConversationList(data)
+         setIsConnected(true)
       }
     }
 
@@ -83,12 +87,10 @@ function ChatView() {
   }
 
   const sendMessage = () => {
-    if (!message.trim() || !username.trim()) return
-
     const msg = {
       type: 'message',
-      from: username,
-      to: selectedUser || '',
+      from: userInfo!.id,
+      to: selectedConversation || '',
       content: message,
     }
 
@@ -101,7 +103,7 @@ function ChatView() {
 
     const msg = {
       type: 'create_group',
-      from: username,
+      from: userInfo!.id,
       to: groupName,
       users: selectedGroupUsers,
     }
@@ -145,19 +147,19 @@ function ChatView() {
           <div className="user-list">
             <h3>Online Users</h3>
             <ul>
-              <li className={!selectedUser ? 'selected' : ''} onClick={() => setSelectedUser('')}>
+              <li className={!selectedConversation ? 'selected' : ''} onClick={() => setSelectedConversation('')}>
                 Everyone
               </li>
-              {users.map((user, idx) => (
-                <li key={idx} className={selectedUser === user ? 'selected' : ''} onClick={() => setSelectedUser(user)}>
-                  {user}
+              {conversationList!.map((c, idx) => (
+                <li key={idx} className={selectedConversation == c.id ? 'selected' : ''} onClick={() => setSelectedConversation(c.id)}>
+                  {c.id}
                 </li>
               ))}
               {groups.map((group, idx) => (
                 <li
                   key={idx}
-                  className={selectedUser === group ? 'selected' : ''}
-                  onClick={() => setSelectedUser(group)}
+                  className={selectedConversation === group ? 'selected' : ''}
+                  onClick={() => setSelectedConversation(group)}
                 >
                   {group} (group)
                 </li>
@@ -196,9 +198,9 @@ function ChatView() {
           <div className="chat-box">
             <div className="messages">
               {filteredMessages.map((msg, idx) => (
-                <div key={idx} className={`message ${msg.from === username ? 'sent' : 'received'}`}>
+                <div key={idx} className={`message ${msg.sender == userInfo!.id ? 'sent' : 'received'}`}>
                   <div className="message-header">
-                    <strong>{msg.from === username ? 'You' : msg.from}</strong>
+                    <strong>{msg.from === msg.sender ? 'You' : msg.from}</strong>
                     <span className="message-time">{msg.time || ''}</span>
                   </div>
                   <div>{msg.content}</div>
@@ -210,7 +212,7 @@ function ChatView() {
             <div className="message-input">
               <input
                 type="text"
-                placeholder={`Type a message${selectedUser ? ` to ${selectedUser}` : ''}...`}
+                placeholder={`Type a message${selectedConversation ? ` to ${selectedConversation}` : ''}...`}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
