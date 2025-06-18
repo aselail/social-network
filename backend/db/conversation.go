@@ -7,11 +7,11 @@ import (
 
 // Conversation represents a chat conversation.
 type Conversation struct {
-	ID                 int            `json:"id"`
-	Type               string         `json:"type"`           // 'direct' or 'group'
-	Name               sql.NullString `json:"name,omitempty"` // Name for group chats (Use NullString for potential NULLs)
-	LastMessageAt      string         `json:"last_message_at"`
-	UnreadMessageCount int            `json:"unread_message_count"` // Added field for unread count
+	ID                 int    `json:"id"`
+	Type               string `json:"type"`           // 'direct' or 'group'
+	Name               string `json:"name,omitempty"` // Name for group chats (Use NullString for potential NULLs)
+	LastMessageAt      string `json:"last_message_at"`
+	UnreadMessageCount int    `json:"unread_message_count"` // Added field for unread count
 }
 
 type Message struct {
@@ -175,6 +175,12 @@ func (db *Database) FetchConversationsForUser(userID int) ([]Conversation, error
 		c.id,
 		c.type,
 		c.name,
+		(
+			SELECT user.nickname
+			FROM conversation_participant as cp
+			JOIN user on user.id = cp.user
+			WHERE cp.conversation = c.id and user.id != ?
+		) AS direct_name,
 		c.last_message_at,
 		(
 			SELECT COUNT(*)
@@ -193,7 +199,7 @@ func (db *Database) FetchConversationsForUser(userID int) ([]Conversation, error
 			c.last_message_at DESC;
 	`
 
-	rows, err := db.db.Query(query, userID, userID)
+	rows, err := db.db.Query(query, userID, userID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query conversations for user %d: %w", userID, err)
 	}
@@ -202,9 +208,20 @@ func (db *Database) FetchConversationsForUser(userID int) ([]Conversation, error
 	var conversations []Conversation
 	for rows.Next() {
 		var conv Conversation
+		var directName sql.NullString
+		var name sql.NullString
 
 		// Scan with the unread_count column
-		err := rows.Scan(&conv.ID, &conv.Type, &conv.Name, &conv.LastMessageAt, &conv.UnreadMessageCount)
+		err := rows.Scan(&conv.ID, &conv.Type, &name, &directName, &conv.LastMessageAt, &conv.UnreadMessageCount)
+
+		if name.Valid {
+			conv.Name = name.String
+		} else if directName.Valid {
+			conv.Name = directName.String
+		} else {
+			conv.Name = ""
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan conversation row: %w", err)
 		}

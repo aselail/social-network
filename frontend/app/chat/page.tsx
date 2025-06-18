@@ -23,7 +23,7 @@ function ChatView() {
   const [allMessages, setAllMessages] = useState<any[]>([])
   const [users, setUsers] = useState([])
   const [groups, setGroups] = useState<any[]>([])
-  const [selectedConversation, setSelectedConversation] = useState<number>(0)
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [conversationList, setConversationList] = useState<Conversation[] | null>(null)
   const [groupName, setGroupName] = useState('')
   const [selectedGroupUsers, setSelectedGroupUsers] = useState([])
@@ -145,14 +145,14 @@ function ChatView() {
       ) : (
         <div className="chat-container">
           <div className="user-list">
-            <h3>Online Users</h3>
+            <h3>Conversation List</h3>
             <ul>
-              <li className={!selectedConversation ? 'selected' : ''} onClick={() => setSelectedConversation('')}>
+              <li className={!selectedConversation ? 'selected' : ''} onClick={() => setSelectedConversation(null)}>
                 Everyone
               </li>
               {conversationList!.map((c, idx) => (
-                <li key={idx} className={selectedConversation == c.id ? 'selected' : ''} onClick={() => setSelectedConversation(c.id)}>
-                  {c.id}
+                <li key={idx} className={selectedConversation == c ? 'selected' : ''} onClick={() => setSelectedConversation(c)}>
+                  {c.name}
                 </li>
               ))}
               {groups.map((group, idx) => (
@@ -212,7 +212,7 @@ function ChatView() {
             <div className="message-input">
               <input
                 type="text"
-                placeholder={`Type a message${selectedConversation ? ` to ${selectedConversation}` : ''}...`}
+                placeholder={`Type a message${selectedConversation ? ` to ${selectedConversation.name}` : ''}...`}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}

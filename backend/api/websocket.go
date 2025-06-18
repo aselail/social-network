@@ -34,7 +34,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	client := &Client{conn: ws, id: msg.From}
 	hub.addClient(client)
 
-	fmt.Printf("Client connected: %s\n", client.id)
+	fmt.Printf("Client connected: %d\n", client.id)
 
 	hub.sendUserList(client)
 	//hub.sendGroupList(client.username)
@@ -44,7 +44,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 			hub.removeClient(client)
 			// hub.sendUserList()
 
-			fmt.Printf("Client disconnected: %s\n", client.id)
+			fmt.Printf("Client disconnected: %d\n", client.id)
 		}()
 
 		for {
