@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS user
     nickname        TEXT,
     about           TEXT,
     gender          INT,
-    profile_picture INT
+    profile_picture INT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create an index on user.email for faster lookups
