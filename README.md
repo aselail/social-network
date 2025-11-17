@@ -97,9 +97,3 @@ To quickly test production build:
 
 ## List of Group Members
 
-The following users are members of a group:
-
-*   ahelal (Ahmed Helal)
-*   fsadeq (Fatema Sadeq)
-*   na (Nour A)
-*   aselail (Ali Selail)
